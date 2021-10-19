@@ -1,6 +1,7 @@
 #include "cpuinfo.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <ctype.h>
 
 #define BUFFER_SIZE 256
@@ -23,14 +24,27 @@ static int readLine(FILE *fp, char *buffer) {
   return BUFFER_SIZE - 1;
 }
 
-static void mtkProcessorInformationLoadDefaults(MtkProcessorInformation *processorInformation) {
-  processorInformation->aggregation.user = 56;
-  processorInformation->aggregation.nice = 0;
-  processorInformation->aggregation.system = 0;
-  processorInformation->aggregation.idle = 44;
-  processorInformation->aggregation.iowait = 0;
-  processorInformation->aggregation.irq = 0;
-  processorInformation->aggregation.softirq = 0;
+static void mtkProcessorLoadRandom(MtkProcessorInformation *processorInformation) {
+  sranddev();
+  processorInformation->cpuCount = 8 + rand() % 4;
+  memset(&processorInformation->aggregation, 0, sizeof(MtkCpuInformation));
+  for (int i = 0; i < processorInformation->cpuCount; i++) {
+    processorInformation->cpus[i].user = rand() % 100000;
+    processorInformation->cpus[i].nice = rand() % 100;
+    processorInformation->cpus[i].system = rand() % 2000;
+    processorInformation->cpus[i].idle = rand() % 100000;
+    processorInformation->cpus[i].iowait = rand() % 4000;
+    processorInformation->cpus[i].irq = rand() % 100;
+    processorInformation->cpus[i].softirq = rand() % 500;
+
+    processorInformation->aggregation.user += processorInformation->cpus[i].user;
+    processorInformation->aggregation.nice += processorInformation->cpus[i].nice;
+    processorInformation->aggregation.system += processorInformation->cpus[i].system;
+    processorInformation->aggregation.idle += processorInformation->cpus[i].idle;
+    processorInformation->aggregation.iowait += processorInformation->cpus[i].iowait;
+    processorInformation->aggregation.irq += processorInformation->cpus[i].irq;
+    processorInformation->aggregation.softirq += processorInformation->cpus[i].softirq;
+  }
 }
 
 void mtkProcessorInformationRead(MtkProcessorInformation *processorInformation) {
@@ -38,7 +52,7 @@ void mtkProcessorInformationRead(MtkProcessorInformation *processorInformation) 
   FILE *fp = fopen(CPU_INFORMATION_PATH, "r");
   if (!fp) {
     printf("Failed to read %s.\n", CPU_INFORMATION_PATH);
-    mtkProcessorInformationLoadDefaults(processorInformation);
+    mtkProcessorLoadRandom(processorInformation);
     return;
   }
 
