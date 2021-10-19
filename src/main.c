@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <gtk/gtk.h>
+#include "meminfo.h"
 
 typedef struct mtk_color_ {
   double r, g, b;
@@ -18,21 +19,9 @@ typedef struct mtk_user_data {
 } MtkUserData;
 
 static double parseUsage() {
-  char buffer[1024];
-  FILE *fp = popen("top -b -n 1 | grep \"MiB Mem\"", "r");
-  fgets(buffer, 1024, fp);
-  pclose(fp);
-  double total_mem, free_mem;
-  char *parsing_head = &buffer[0];
-  while (*parsing_head && !isdigit(*parsing_head)) parsing_head++;
-  total_mem = strtod(parsing_head, &parsing_head);
-  parsing_head++;
-  while (*parsing_head && !isdigit(*parsing_head)) parsing_head++;
-  free_mem = strtod(parsing_head, &parsing_head);
-  parsing_head++;
-  while (*parsing_head && !isdigit(*parsing_head)) parsing_head++;
-  free_mem = strtod(parsing_head, &parsing_head);
-  return (total_mem - free_mem) / total_mem;
+  MtkMemoryInformation memoryInformation;
+  mtkMemoryInformationRead(&memoryInformation);
+  return (double)(memoryInformation.memoryTotal - memoryInformation.memoryAvailable) / memoryInformation.memoryTotal;
 }
 
 static gboolean onRefresh(gpointer userData) {
@@ -55,13 +44,13 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
   const double lineSpacing = 5.0;
 
   /* Base circle */
-  cairo_set_source_rgba(cairo, circleColor.r, circleColor.b, circleColor.g, 0.3);
+  cairo_set_source_rgba(cairo, circleColor.r, circleColor.g, circleColor.b, 0.3);
   cairo_set_line_width(cairo, 14);
   cairo_arc(cairo, cx, cy, radius, 0, 2 * G_PI);
   cairo_stroke(cairo);
 
   /* Filled circle */
-  cairo_set_source_rgba(cairo, circleColor.r, circleColor.b, circleColor.g, 0.8);
+  cairo_set_source_rgba(cairo, circleColor.r, circleColor.g, circleColor.b, 0.8);
   cairo_set_line_width(cairo, 14);
   cairo_arc(cairo, cx, cy, radius, -G_PI / 2, 2 * G_PI * usage - G_PI / 2);
   cairo_stroke(cairo);
@@ -96,6 +85,7 @@ static void onActivate(GtkApplication *application, gpointer userData) {
   GtkWidget *window = gtk_application_window_new(application);
   gtk_window_set_title(GTK_WINDOW(window), "Monitor");
   gtk_window_set_default_size(GTK_WINDOW(window), 250, 250);
+  gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 
   GtkWidget *drawingArea = gtk_drawing_area_new();
   gtk_widget_set_size_request(drawingArea, 100, 100);
