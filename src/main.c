@@ -1,33 +1,25 @@
-#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 #include <gtk/gtk.h>
 #include "meminfo.h"
+#include "cpuinfo.h"
 
 typedef struct mtk_color_ {
   double r, g, b;
 } MtkColor;
 
-typedef struct mtk_refresh_data {
-  GtkWidget *drawingArea;
-  double usage;
-} MtkRefreshData;
-
 typedef struct mtk_user_data {
-  MtkRefreshData refreshData;
+  GtkWidget *drawingArea;
+  MtkMemoryInformation memoryInformation;
+  MtkProcessorInformation processorInformation;
 } MtkUserData;
 
-static double parseUsage() {
-  MtkMemoryInformation memoryInformation;
-  mtkMemoryInformationRead(&memoryInformation);
-  return (double)(memoryInformation.memoryTotal - memoryInformation.memoryAvailable) / memoryInformation.memoryTotal;
-}
+#define MTK_USER_DATA(x) ((MtkUserData *)(x))
 
 static gboolean onRefresh(gpointer userData) {
-  MtkRefreshData *refreshData = (MtkRefreshData *) userData;
-  refreshData->usage = parseUsage();
-  gtk_widget_queue_draw(refreshData->drawingArea);
+  mtkMemoryInformationRead(&MTK_USER_DATA(userData)->memoryInformation);
+  mtkProcessorInformationRead(&MTK_USER_DATA(userData)->processorInformation);
+  gtk_widget_queue_draw(MTK_USER_DATA(userData)->drawingArea);
   return G_SOURCE_CONTINUE;
 }
 
@@ -40,7 +32,8 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
   const double cx = width / 2.0, cy = height / 2.0;
   const double radius = MIN(width, height) / 2.0 - 2.0 * margin;
   const MtkColor circleColor = {0.1, 0.2, 0.8};
-  const double usage = *(double *)userData;
+  MtkMemoryInformation *memory = &MTK_USER_DATA(userData)->memoryInformation;
+  const double usage = (double)(memory->memoryTotal - memory->memoryAvailable) / memory->memoryTotal;
   const double lineSpacing = 5.0;
 
   /* Base circle */
@@ -79,21 +72,20 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
 }
 
 static void onActivate(GtkApplication *application, gpointer userData) {
-  MtkUserData *castedUserData = (MtkUserData *) userData;
-  castedUserData->refreshData.usage = parseUsage();
+  mtkMemoryInformationRead(&MTK_USER_DATA(userData)->memoryInformation);
+  mtkProcessorInformationRead(&MTK_USER_DATA(userData)->processorInformation);
 
   GtkWidget *window = gtk_application_window_new(application);
   gtk_window_set_title(GTK_WINDOW(window), "Monitor");
-  gtk_window_set_default_size(GTK_WINDOW(window), 250, 250);
   gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 
   GtkWidget *drawingArea = gtk_drawing_area_new();
-  gtk_widget_set_size_request(drawingArea, 100, 100);
-  g_signal_connect(drawingArea, "draw", G_CALLBACK(onDraw), &castedUserData->refreshData.usage);
+  gtk_widget_set_size_request(drawingArea, 250, 250);
+  g_signal_connect(drawingArea, "draw", G_CALLBACK(onDraw), userData);
   gtk_container_add(GTK_CONTAINER(window), drawingArea);
 
-  castedUserData->refreshData.drawingArea = drawingArea;
-  gdk_threads_add_timeout_seconds(2, G_SOURCE_FUNC(onRefresh), &castedUserData->refreshData);
+  MTK_USER_DATA(userData)->drawingArea = drawingArea;
+  gdk_threads_add_timeout_seconds(2, G_SOURCE_FUNC(onRefresh), userData);
 
   gtk_widget_show_all(window);
 }
