@@ -16,6 +16,7 @@ typedef struct mtk_color_ {
 typedef struct mtk_user_data_ {
   GtkWidget *ramDrawingArea;
   GtkWidget *cpuDrawingArea;
+  GtkWidget *threadDrawingArea;
   MtkMemoryInformation memoryInformation;
   MtkProcessorInformation processorInformation;
 } MtkUserData;
