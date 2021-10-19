@@ -25,7 +25,12 @@ static int readLine(FILE *fp, char *buffer) {
 
 static void mtkProcessorInformationLoadDefaults(MtkProcessorInformation *processorInformation) {
   processorInformation->aggregation.user = 56;
+  processorInformation->aggregation.nice = 0;
+  processorInformation->aggregation.system = 0;
   processorInformation->aggregation.idle = 44;
+  processorInformation->aggregation.iowait = 0;
+  processorInformation->aggregation.irq = 0;
+  processorInformation->aggregation.softirq = 0;
 }
 
 void mtkProcessorInformationRead(MtkProcessorInformation *processorInformation) {

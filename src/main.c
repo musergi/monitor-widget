@@ -1,11 +1,13 @@
 #include <gtk/gtk.h>
 #include "mtk_user_data.h"
 #include "mtk_ram_widget.h"
+#include "mtk_cpu_widget.h"
 
 static gboolean onRefresh(gpointer userData) {
   mtkMemoryInformationRead(&MTK_USER_DATA(userData)->memoryInformation);
   mtkProcessorInformationRead(&MTK_USER_DATA(userData)->processorInformation);
-  gtk_widget_queue_draw(MTK_USER_DATA(userData)->drawingArea);
+  gtk_widget_queue_draw(MTK_USER_DATA(userData)->ramDrawingArea);
+  gtk_widget_queue_draw(MTK_USER_DATA(userData)->cpuDrawingArea);
   return G_SOURCE_CONTINUE;
 }
 
@@ -17,10 +19,17 @@ static void onActivate(GtkApplication *application, gpointer userData) {
   gtk_window_set_title(GTK_WINDOW(window), "Monitor");
   gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
 
-  GtkWidget *drawingArea = mtkRamWidgetNew(userData);
-  gtk_container_add(GTK_CONTAINER(window), drawingArea);
+  GtkWidget *gridContainer = gtk_grid_new();
+  gtk_container_add(GTK_CONTAINER(window), gridContainer);
 
-  MTK_USER_DATA(userData)->drawingArea = drawingArea;
+  GtkWidget *ramDrawingArea = mtkRamWidgetNew(userData);
+  gtk_grid_attach(GTK_GRID(gridContainer), ramDrawingArea, 0, 0, 1, 1);
+
+  GtkWidget *cpuDrawingArea = mtkCpuWidgetNew(userData);
+  gtk_grid_attach(GTK_GRID(gridContainer), cpuDrawingArea, 1, 0, 1, 1);
+
+  MTK_USER_DATA(userData)->ramDrawingArea = ramDrawingArea;
+  MTK_USER_DATA(userData)->cpuDrawingArea = cpuDrawingArea;
   gdk_threads_add_timeout_seconds(2, G_SOURCE_FUNC(onRefresh), userData);
 
   gtk_widget_show_all(window);
