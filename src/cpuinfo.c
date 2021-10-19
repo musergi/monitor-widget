@@ -1,7 +1,6 @@
 #include "cpuinfo.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <ctype.h>
 
 #define BUFFER_SIZE 256
@@ -24,12 +23,18 @@ static int readLine(FILE *fp, char *buffer) {
   return BUFFER_SIZE - 1;
 }
 
+static void mtkProcessorInformationLoadDefaults(MtkProcessorInformation *processorInformation) {
+  processorInformation->aggregation.user = 56;
+  processorInformation->aggregation.idle = 44;
+}
+
 void mtkProcessorInformationRead(MtkProcessorInformation *processorInformation) {
   char lineBuffer[BUFFER_SIZE];
   FILE *fp = fopen(CPU_INFORMATION_PATH, "r");
   if (!fp) {
     printf("Failed to read %s.\n", CPU_INFORMATION_PATH);
-    exit(EXIT_FAILURE);
+    mtkProcessorInformationLoadDefaults(processorInformation);
+    return;
   }
 
   /* Read summary line */

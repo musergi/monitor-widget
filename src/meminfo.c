@@ -28,19 +28,25 @@ static int readLine(FILE *fp, char *buffer) {
   return BUFFER_SIZE - 1;
 }
 
+static void mtkMemoryInformationLoadDefaults(MtkMemoryInformation *memoryInformation) {
+  memoryInformation->memoryTotal = 8192;
+  memoryInformation->memoryAvailable = 3000;
+}
+
 void mtkMemoryInformationRead(MtkMemoryInformation *memoryInformation) {
   char lineBuffer[BUFFER_SIZE];
-  FILE* fp = fopen(MEMORY_INFORMATION_PATH, "r");
+  FILE *fp = fopen(MEMORY_INFORMATION_PATH, "r");
   if (!fp) {
     printf("Failed to read %s.\n", MEMORY_INFORMATION_PATH);
-    exit(EXIT_FAILURE);
+    mtkMemoryInformationLoadDefaults(memoryInformation);
+    return;
   }
   size_t offset = 0;
-  void *rawPointer = (void*) memoryInformation;
-  while(offset < sizeof(MtkMemoryInformation) && readLine(fp, lineBuffer) != EOF) {
+  void *rawPointer = (void *) memoryInformation;
+  while (offset < sizeof(MtkMemoryInformation) && readLine(fp, lineBuffer) != EOF) {
     char *head = lineBuffer;
     while (*head && !isdigit(*head)) head++;
-    *(unsigned int *)(rawPointer + offset) = strtol(head, NULL, 10);
+    *(unsigned int *) (rawPointer + offset) = strtol(head, NULL, 10);
     offset += sizeof(unsigned int);
   }
   fclose(fp);
