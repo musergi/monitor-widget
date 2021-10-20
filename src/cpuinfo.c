@@ -72,6 +72,7 @@ void mtkProcessorInformationRead(MtkProcessorInformation *processorInformation) 
          processorInformation->cpuCount < CPU_INFORMATION_MAX_CPU_COUNT) {
     head = lineBuffer;
     rawPointer = &processorInformation->cpus[processorInformation->cpuCount];
+    head = strchr(head, ' '); // Skip to first space
     for (size_t offset = 0; offset < sizeof(MtkCpuInformation); offset += sizeof(unsigned int)) {
       while (*head && !isdigit(*head)) head++;
       *(unsigned int *) (rawPointer + offset) = strtol(head, &head, 10);
