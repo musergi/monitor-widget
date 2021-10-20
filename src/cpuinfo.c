@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 #define BUFFER_SIZE 256
 
@@ -25,7 +26,7 @@ static int readLine(FILE *fp, char *buffer) {
 }
 
 static void mtkProcessorLoadRandom(MtkProcessorInformation *processorInformation) {
-  sranddev();
+  srand(time(NULL));
   processorInformation->cpuCount = 8 + rand() % 4;
   memset(&processorInformation->aggregation, 0, sizeof(MtkCpuInformation));
   for (int i = 0; i < processorInformation->cpuCount; i++) {
@@ -59,14 +60,24 @@ void mtkProcessorInformationRead(MtkProcessorInformation *processorInformation) 
   /* Read summary line */
   readLine(fp, lineBuffer);
   char *head = lineBuffer;
+  void *rawPointer = &processorInformation->aggregation;
   for (size_t offset = 0; offset < sizeof(MtkCpuInformation); offset += sizeof(unsigned int)) {
     while (*head && !isdigit(*head)) head++;
-    strtol(head, &head, 10);
-    head++;
+    *(unsigned int *) (rawPointer + offset) = strtol(head, &head, 10);
   }
 
   /* Read cpu lines */
-  // TODO: Read cpu lines
+  processorInformation->cpuCount = 0;
+  while (readLine(fp, lineBuffer) != EOF && strncmp("cpu", lineBuffer, 3) == 0 &&
+         processorInformation->cpuCount < CPU_INFORMATION_MAX_CPU_COUNT) {
+    head = lineBuffer;
+    rawPointer = &processorInformation->cpus[processorInformation->cpuCount];
+    for (size_t offset = 0; offset < sizeof(MtkCpuInformation); offset += sizeof(unsigned int)) {
+      while (*head && !isdigit(*head)) head++;
+      *(unsigned int *) (rawPointer + offset) = strtol(head, &head, 10);
+    }
+    processorInformation->cpuCount++;
+  }
 
   fclose(fp);
 }
