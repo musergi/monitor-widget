@@ -17,10 +17,21 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
   const double margin = 10.0;
   const MtkColor color = {0.1, 0.2, 0.8};
   const double lineSpacing = 6.0;
-  const unsigned int cpu_count = 8;
-  const double usage[] = {0.2, 0.3, 0.8, 0.2, 0.4, 0.6, 0.1, 0.9};
+
+
+  MtkProcessorInformation *processor = &MTK_USER_DATA(userData)->processorInformation;
+  const unsigned int cpu_count = processor->cpuCount;
+  double usages[CPU_INFORMATION_MAX_CPU_COUNT];
+  char texts[CPU_INFORMATION_MAX_CPU_COUNT][10];
+  for (int i = 0; i < cpu_count; i++) {
+    unsigned int total = processor->cpus[i].idle + processor->cpus[i].user + processor->cpus[i].iowait +
+                         processor->cpus[i].irq + processor->cpus[i].nice + processor->cpus[i].softirq +
+                         processor->cpus[i].system;
+    usages[i] = (double) (total - processor->cpus[i].idle) / total;
+    sprintf(texts[i], "CPU%d", i);
+  }
+
   const double lineHeight = (height - 2 * margin - (cpu_count - 1) * lineSpacing) / cpu_count;
-  const char *texts[] = {"CPU0", "CPU1", "CPU2", "CPU3", "CPU4", "CPU5", "CPU6", "CPU7"};
 
   /* Set up font */
   cairo_font_face_t *fontFace = cairo_toy_font_face_create("Ubuntu", CAIRO_FONT_SLANT_NORMAL,
@@ -46,7 +57,7 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
     cairo_fill(cairo);
 
     cairo_set_source_rgba(cairo, color.r, color.g, color.b, 0.8);
-    cairo_rectangle(cairo, lineOffset, start, lineWidth * usage[i], lineHeight);
+    cairo_rectangle(cairo, lineOffset, start, lineWidth * usages[i], lineHeight);
     cairo_fill(cairo);
 
     cairo_move_to(cairo, margin, start + lineHeight / 2 + textExtents.height / 2);
