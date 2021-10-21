@@ -14,26 +14,31 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
   width = gtk_widget_get_allocated_width(widget);
   height = gtk_widget_get_allocated_height(widget);
 
-  MtkMemoryInformation *memory = &MTK_USER_DATA(userData)->memoryInformation;
-  const double usage = (double) (memory->memoryTotal - memory->memoryAvailable) / memory->memoryTotal;
   const double lineSpacing = 5.0;
 
   /* Base circle */
   const double center[2] = {width / 2.0, height / 2.0};
-  const double radius = MIN(width, height) / 2.0 - 2.0 * MTK_SETTINGS(userData)->margin;
+  const double radius =
+          MIN(width, height) / 2.0 - 2.0 * MTK_SETTINGS(userData)->margin - MTK_SETTINGS(userData)->circleWidth / 2;
   cairo_set_source_rgba(cairo, MTK_SETTINGS(userData)->baseColor.r, MTK_SETTINGS(userData)->baseColor.g,
                         MTK_SETTINGS(userData)->baseColor.b, MTK_SETTINGS(userData)->transparentAlpha);
   cairo_set_line_width(cairo, MTK_SETTINGS(userData)->circleWidth);
-  cairo_arc(cairo, center[0], center[1], radius, 0, 2 * G_PI);
+  cairo_arc(cairo, center[0], center[1], radius, MTK_SETTINGS(userData)->circleStart,
+            MTK_SETTINGS(userData)->circleEnd);
   cairo_stroke(cairo);
 
   /* Filled circle */
+  const double usage = (double) (MTK_MEM_INFO(userData)->memoryTotal - MTK_MEM_INFO(userData)->memoryAvailable) /
+                       MTK_MEM_INFO(userData)->memoryTotal;
+  const double end = MTK_SETTINGS(userData)->circleStart +
+                     usage * (MTK_SETTINGS(userData)->circleEnd - MTK_SETTINGS(userData)->circleStart);
   cairo_set_source_rgba(cairo, MTK_SETTINGS(userData)->baseColor.r, MTK_SETTINGS(userData)->baseColor.g,
                         MTK_SETTINGS(userData)->baseColor.b, MTK_SETTINGS(userData)->baseAlpha);
-  cairo_set_line_width(cairo, 14);
-  cairo_arc(cairo, center[0], center[1], radius, -G_PI / 2, 2 * G_PI * usage - G_PI / 2);
+  cairo_set_line_width(cairo, MTK_SETTINGS(userData)->circleWidth);
+  cairo_arc(cairo, center[0], center[1], radius, MTK_SETTINGS(userData)->circleStart, end);
   cairo_stroke(cairo);
 
+  /* Set font */
   cairo_font_face_t *fontFace = cairo_toy_font_face_create("Ubuntu", CAIRO_FONT_SLANT_NORMAL,
                                                            CAIRO_FONT_WEIGHT_BOLD);
   cairo_set_font_face(cairo, fontFace);

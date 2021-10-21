@@ -11,6 +11,8 @@ typedef struct mtk_settings_ {
   double baseAlpha;
   double circleWidth;
   double margin;
+  double circleStart;
+  double circleEnd;
 } MtkSettings;
 
 void mtkSettingsLoadDefault(MtkSettings *settings);
