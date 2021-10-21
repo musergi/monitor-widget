@@ -20,5 +20,6 @@ typedef struct mtk_user_data_ {
 } MtkUserData;
 
 #define MTK_USER_DATA(x) ((MtkUserData *)(x))
+#define MTK_SETTINGS(x) (&(MTK_USER_DATA(x)->settings))
 
 #endif //MONITOR_WIDGET_MTK_USER_DATA_H

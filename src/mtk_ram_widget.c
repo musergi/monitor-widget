@@ -14,24 +14,24 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
   width = gtk_widget_get_allocated_width(widget);
   height = gtk_widget_get_allocated_height(widget);
 
-  const double margin = 10.0;
-  const double cx = width / 2.0, cy = height / 2.0;
-  const double radius = MIN(width, height) / 2.0 - 2.0 * margin;
-  const MtkColor circleColor = {0.1, 0.2, 0.8};
   MtkMemoryInformation *memory = &MTK_USER_DATA(userData)->memoryInformation;
-  const double usage = (double)(memory->memoryTotal - memory->memoryAvailable) / memory->memoryTotal;
+  const double usage = (double) (memory->memoryTotal - memory->memoryAvailable) / memory->memoryTotal;
   const double lineSpacing = 5.0;
 
   /* Base circle */
-  cairo_set_source_rgba(cairo, circleColor.r, circleColor.g, circleColor.b, 0.3);
-  cairo_set_line_width(cairo, 14);
-  cairo_arc(cairo, cx, cy, radius, 0, 2 * G_PI);
+  const double center[2] = {width / 2.0, height / 2.0};
+  const double radius = MIN(width, height) / 2.0 - 2.0 * MTK_SETTINGS(userData)->margin;
+  cairo_set_source_rgba(cairo, MTK_SETTINGS(userData)->baseColor.r, MTK_SETTINGS(userData)->baseColor.g,
+                        MTK_SETTINGS(userData)->baseColor.b, MTK_SETTINGS(userData)->transparentAlpha);
+  cairo_set_line_width(cairo, MTK_SETTINGS(userData)->circleWidth);
+  cairo_arc(cairo, center[0], center[1], radius, 0, 2 * G_PI);
   cairo_stroke(cairo);
 
   /* Filled circle */
-  cairo_set_source_rgba(cairo, circleColor.r, circleColor.g, circleColor.b, 0.8);
+  cairo_set_source_rgba(cairo, MTK_SETTINGS(userData)->baseColor.r, MTK_SETTINGS(userData)->baseColor.g,
+                        MTK_SETTINGS(userData)->baseColor.b, MTK_SETTINGS(userData)->baseAlpha);
   cairo_set_line_width(cairo, 14);
-  cairo_arc(cairo, cx, cy, radius, -G_PI / 2, 2 * G_PI * usage - G_PI / 2);
+  cairo_arc(cairo, center[0], center[1], radius, -G_PI / 2, 2 * G_PI * usage - G_PI / 2);
   cairo_stroke(cairo);
 
   cairo_font_face_t *fontFace = cairo_toy_font_face_create("Ubuntu", CAIRO_FONT_SLANT_NORMAL,
@@ -42,7 +42,7 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
   /* RAM text */
   cairo_set_font_size(cairo, 40.0);
   cairo_text_extents(cairo, "RAM", &textExtents);
-  cairo_move_to(cairo, cx - textExtents.width / 2, cy - lineSpacing / 2);
+  cairo_move_to(cairo, center[0] - textExtents.width / 2, center[1] - lineSpacing / 2);
   cairo_show_text(cairo, "RAM");
 
   /* Percentage text */
@@ -51,7 +51,7 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
   sprintf(textBuffer, "%u%%", percent);
   cairo_set_font_size(cairo, 30.0);
   cairo_text_extents(cairo, textBuffer, &textExtents);
-  cairo_move_to(cairo, cx - textExtents.width / 2, cy + textExtents.height + lineSpacing / 2);
+  cairo_move_to(cairo, center[0] - textExtents.width / 2, center[1] + textExtents.height + lineSpacing / 2);
   cairo_show_text(cairo, textBuffer);
 
   return FALSE;

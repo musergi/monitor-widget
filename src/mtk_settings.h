@@ -7,6 +7,9 @@ typedef struct mtk_color_ {
 
 typedef struct mtk_settings_ {
   MtkColor baseColor;
+  double transparentAlpha;
+  double baseAlpha;
+  double circleWidth;
   double margin;
 } MtkSettings;
 
