@@ -16,6 +16,7 @@ static gboolean onRefresh(gpointer userData) {
 static void onActivate(GtkApplication *application, gpointer userData) {
   mtkMemoryInformationRead(&MTK_USER_DATA(userData)->memoryInformation);
   mtkProcessorInformationRead(&MTK_USER_DATA(userData)->processorInformation);
+  mtkSettingsLoadDefault(&MTK_USER_DATA(userData)->settings);
 
   GtkWidget *window = gtk_application_window_new(application);
   gtk_window_set_title(GTK_WINDOW(window), "Monitor");

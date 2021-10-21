@@ -8,10 +8,7 @@
 #include <gtk/gtk.h>
 #include "meminfo.h"
 #include "cpuinfo.h"
-
-typedef struct mtk_color_ {
-  double r, g, b;
-} MtkColor;
+#include "mtk_settings.h"
 
 typedef struct mtk_user_data_ {
   GtkWidget *ramDrawingArea;
@@ -19,6 +16,7 @@ typedef struct mtk_user_data_ {
   GtkWidget *threadDrawingArea;
   MtkMemoryInformation memoryInformation;
   MtkProcessorInformation processorInformation;
+  MtkSettings settings;
 } MtkUserData;
 
 #define MTK_USER_DATA(x) ((MtkUserData *)(x))
