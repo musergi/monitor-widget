@@ -14,27 +14,28 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
   width = gtk_widget_get_allocated_width(widget);
   height = gtk_widget_get_allocated_height(widget);
 
-  const double margin = 10.0;
+  /* Base circle */
   const double cx = width / 2.0, cy = height / 2.0;
-  const double radius = MIN(width, height) / 2.0 - 2.0 * margin;
-  const MtkColor circleColor = {0.1, 0.2, 0.8};
+  const double radius =
+          MIN(width, height) / 2.0 - MTK_SETTINGS(userData)->margin - MTK_SETTINGS(userData)->circleWidth / 2;
+  cairo_set_source_rgba(cairo, MTK_SETTINGS(userData)->baseColor.r, MTK_SETTINGS(userData)->baseColor.g,
+                        MTK_SETTINGS(userData)->baseColor.b, MTK_SETTINGS(userData)->transparentAlpha);
+  cairo_set_line_width(cairo, MTK_SETTINGS(userData)->circleWidth);
+  cairo_arc(cairo, cx, cy, radius, MTK_SETTINGS(userData)->circleStart, MTK_SETTINGS(userData)->circleEnd);
+  cairo_stroke(cairo);
+
+  /* Filled circle */
+  cairo_set_source_rgba(cairo, MTK_SETTINGS(userData)->baseColor.r, MTK_SETTINGS(userData)->baseColor.g,
+                        MTK_SETTINGS(userData)->baseColor.b, MTK_SETTINGS(userData)->baseAlpha);
+  cairo_set_line_width(cairo, MTK_SETTINGS(userData)->circleWidth);
   MtkProcessorInformation *processor = &MTK_USER_DATA(userData)->processorInformation;
   unsigned int total = processor->aggregation.idle + processor->aggregation.user + processor->aggregation.iowait +
                        processor->aggregation.irq + processor->aggregation.nice + processor->aggregation.softirq +
                        processor->aggregation.system;
   const double usage = (double) (total - processor->aggregation.idle) / total;
-  const double lineSpacing = 5.0;
-
-  /* Base circle */
-  cairo_set_source_rgba(cairo, circleColor.r, circleColor.g, circleColor.b, 0.3);
-  cairo_set_line_width(cairo, 14);
-  cairo_arc(cairo, cx, cy, radius, 0, 2 * G_PI);
-  cairo_stroke(cairo);
-
-  /* Filled circle */
-  cairo_set_source_rgba(cairo, circleColor.r, circleColor.g, circleColor.b, 0.8);
-  cairo_set_line_width(cairo, 14);
-  cairo_arc(cairo, cx, cy, radius, -G_PI / 2, 2 * G_PI * usage - G_PI / 2);
+  const double end = MTK_SETTINGS(userData)->circleStart +
+                     usage * (MTK_SETTINGS(userData)->circleEnd - MTK_SETTINGS(userData)->circleStart);
+  cairo_arc(cairo, cx, cy, radius, MTK_SETTINGS(userData)->circleStart, end);
   cairo_stroke(cairo);
 
   /* Set up font */
@@ -44,18 +45,20 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
   cairo_text_extents_t textExtents;
 
   /* CPU text */
-  cairo_set_font_size(cairo, 40.0);
+  cairo_set_source_rgba(cairo, MTK_SETTINGS(userData)->baseColor.r, MTK_SETTINGS(userData)->baseColor.g,
+                        MTK_SETTINGS(userData)->baseColor.b, MTK_SETTINGS(userData)->fontAlpha);
+  cairo_set_font_size(cairo, MTK_SETTINGS(userData)->centerFontSize);
   cairo_text_extents(cairo, "CPU", &textExtents);
-  cairo_move_to(cairo, cx - textExtents.width / 2, cy - lineSpacing / 2);
+  cairo_move_to(cairo, cx - textExtents.width / 2, cy - MTK_SETTINGS(userData)->textSpacing / 2);
   cairo_show_text(cairo, "CPU");
 
   /* Percentage text */
   char textBuffer[10];
   const unsigned int percent = (unsigned int) (usage * 100.0);
   sprintf(textBuffer, "%u%%", percent);
-  cairo_set_font_size(cairo, 30.0);
+  cairo_set_font_size(cairo, MTK_SETTINGS(userData)->percentageFontSize);
   cairo_text_extents(cairo, textBuffer, &textExtents);
-  cairo_move_to(cairo, cx - textExtents.width / 2, cy + textExtents.height + lineSpacing / 2);
+  cairo_move_to(cairo, cx - textExtents.width / 2, cy + textExtents.height + MTK_SETTINGS(userData)->textSpacing / 2);
   cairo_show_text(cairo, textBuffer);
 
   return FALSE;

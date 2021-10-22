@@ -10,7 +10,7 @@ void mtkSettingsLoadDefault(MtkSettings *settings) {
   settings->baseAlpha = 0.5;
   settings->fontAlpha = 0.8;
   settings->circleWidth = 30.0;
-  settings->margin = 5.0;
+  settings->margin = 10.0;
   settings->circleStart = -PI / 2;
   settings->circleEnd = -PI / 2 + 2 * PI;
   settings->centerFontSize = 40.0;

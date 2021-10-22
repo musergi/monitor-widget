@@ -13,10 +13,11 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
   guint width, height;
   width = gtk_widget_get_allocated_width(widget);
   height = gtk_widget_get_allocated_height(widget);
+
   /* Base circle */
   const double center[2] = {width / 2.0, height / 2.0};
   const double radius =
-          MIN(width, height) / 2.0 - 2.0 * MTK_SETTINGS(userData)->margin - MTK_SETTINGS(userData)->circleWidth / 2;
+          MIN(width, height) / 2.0 - MTK_SETTINGS(userData)->margin - MTK_SETTINGS(userData)->circleWidth / 2;
   cairo_set_source_rgba(cairo, MTK_SETTINGS(userData)->baseColor.r, MTK_SETTINGS(userData)->baseColor.g,
                         MTK_SETTINGS(userData)->baseColor.b, MTK_SETTINGS(userData)->transparentAlpha);
   cairo_set_line_width(cairo, MTK_SETTINGS(userData)->circleWidth);
