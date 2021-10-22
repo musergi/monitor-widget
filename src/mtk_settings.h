@@ -9,10 +9,14 @@ typedef struct mtk_settings_ {
   MtkColor baseColor;
   double transparentAlpha;
   double baseAlpha;
+  double fontAlpha;
   double circleWidth;
   double margin;
   double circleStart;
   double circleEnd;
+  double centerFontSize;
+  double percentageFontSize;
+  double textSpacing;
 } MtkSettings;
 
 void mtkSettingsLoadDefault(MtkSettings *settings);

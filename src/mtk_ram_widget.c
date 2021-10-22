@@ -13,9 +13,6 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
   guint width, height;
   width = gtk_widget_get_allocated_width(widget);
   height = gtk_widget_get_allocated_height(widget);
-
-  const double lineSpacing = 5.0;
-
   /* Base circle */
   const double center[2] = {width / 2.0, height / 2.0};
   const double radius =
@@ -42,21 +39,24 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
   cairo_font_face_t *fontFace = cairo_toy_font_face_create("Ubuntu", CAIRO_FONT_SLANT_NORMAL,
                                                            CAIRO_FONT_WEIGHT_BOLD);
   cairo_set_font_face(cairo, fontFace);
+  cairo_set_source_rgba(cairo, MTK_SETTINGS(userData)->baseColor.r, MTK_SETTINGS(userData)->baseColor.g,
+                        MTK_SETTINGS(userData)->baseColor.b, MTK_SETTINGS(userData)->fontAlpha);
   cairo_text_extents_t textExtents;
 
   /* RAM text */
-  cairo_set_font_size(cairo, 40.0);
+  cairo_set_font_size(cairo, MTK_SETTINGS(userData)->centerFontSize);
   cairo_text_extents(cairo, "RAM", &textExtents);
-  cairo_move_to(cairo, center[0] - textExtents.width / 2, center[1] - lineSpacing / 2);
+  cairo_move_to(cairo, center[0] - textExtents.width / 2, center[1] - MTK_SETTINGS(userData)->textSpacing / 2);
   cairo_show_text(cairo, "RAM");
 
   /* Percentage text */
   char textBuffer[10];
   const unsigned int percent = (unsigned int) (usage * 100.0);
   sprintf(textBuffer, "%u%%", percent);
-  cairo_set_font_size(cairo, 30.0);
+  cairo_set_font_size(cairo, MTK_SETTINGS(userData)->percentageFontSize);
   cairo_text_extents(cairo, textBuffer, &textExtents);
-  cairo_move_to(cairo, center[0] - textExtents.width / 2, center[1] + textExtents.height + lineSpacing / 2);
+  cairo_move_to(cairo, center[0] - textExtents.width / 2,
+                center[1] + textExtents.height + MTK_SETTINGS(userData)->textSpacing / 2);
   cairo_show_text(cairo, textBuffer);
 
   return FALSE;
