@@ -21,6 +21,22 @@ static void onActivate(GtkApplication *application, gpointer userData) {
   GtkWidget *window = gtk_application_window_new(application);
   gtk_window_set_title(GTK_WINDOW(window), "Monitor");
   gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+  gtk_window_set_decorated(GTK_WINDOW(window), FALSE);
+  gtk_window_set_type_hint(GTK_WINDOW(window), GDK_WINDOW_TYPE_HINT_DESKTOP);
+  gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+
+  int windowPosition[2];
+  int windowSize[2];
+  gtk_window_get_position(GTK_WINDOW(window), &windowPosition[0], &windowPosition[1]);
+  gtk_window_move(GTK_WINDOW(window), windowPosition[0] * 2 - 300, 30);
+  printf("Window position (%d, %d)\n", windowPosition[0], windowPosition[1]);
+
+  gtk_widget_set_app_paintable(window, TRUE);
+
+  GdkScreen *screen = gtk_widget_get_screen(window);
+  GdkVisual *visual = gdk_screen_get_rgba_visual(screen);
+  if (!visual) exit(EXIT_FAILURE);
+  gtk_widget_set_visual(window, visual);
 
   GtkWidget *gridContainer = gtk_grid_new();
   gtk_container_add(GTK_CONTAINER(window), gridContainer);
