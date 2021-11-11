@@ -23,4 +23,10 @@ void mtkSettingsLoadDefault(MtkSettings *settings) {
   settings->baseColor.r = g_settings_get_double(gSettings, "base-color-r");
   settings->baseColor.g = g_settings_get_double(gSettings, "base-color-g");
   settings->baseColor.b = g_settings_get_double(gSettings, "base-color-b");
+  settings->transparentAlpha = g_settings_get_double(gSettings, "transparent-alpha");
+  settings->baseAlpha = g_settings_get_double(gSettings, "base-alpha");
+  settings->fontAlpha = g_settings_get_double(gSettings, "font-alpha");
+  settings->circleWidth = g_settings_get_double(gSettings, "circle-width");
+  settings->circleStart = g_settings_get_double(gSettings, "circle-start");
+  settings->circleEnd = g_settings_get_double(gSettings, "circle-end");
 }
