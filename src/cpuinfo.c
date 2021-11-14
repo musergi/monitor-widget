@@ -1,11 +1,21 @@
 #include "cpuinfo.h"
-#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
 
 #define BUFFER_SIZE 256
+
+void mtkCpuInformationString(MtkCpuInformation *cpuInformation, char *string, size_t stringSize) {
+  sprintf(string, "{user:%u,nice:%u,system:%u,idle:%u,iowait:%u,irq:%u,softirq:%u}", cpuInformation->user,
+      cpuInformation->nice, cpuInformation->system, cpuInformation->idle, cpuInformation->iowait, cpuInformation->irq,
+      cpuInformation->softirq);
+}
+
+unsigned int mtkCpuInformationTotal(MtkCpuInformation *cpuInformation) {
+  return cpuInformation->user + cpuInformation->nice + cpuInformation->system + cpuInformation->idle +
+      cpuInformation->iowait + cpuInformation->irq + cpuInformation->softirq;
+}
 
 static int readLine(FILE *fp, char *buffer) {
   int i = 0;
@@ -50,6 +60,11 @@ static void mtkProcessorLoadRandom(MtkProcessorInformation *processorInformation
 
 void mtkProcessorInformationRead(MtkProcessorInformation *processorInformation) {
   char lineBuffer[BUFFER_SIZE];
+
+  memcpy(&processorInformation->oldAggregation, &processorInformation->aggregation, sizeof(MtkCpuInformation));
+  memcpy(&processorInformation->oldCpus, &processorInformation->cpus, sizeof(MtkCpuInformation) *
+      CPU_INFORMATION_MAX_CPU_COUNT);
+
   FILE *fp = fopen(CPU_INFORMATION_PATH, "r");
   if (!fp) {
     printf("Failed to read %s.\n", CPU_INFORMATION_PATH);
@@ -81,4 +96,11 @@ void mtkProcessorInformationRead(MtkProcessorInformation *processorInformation) 
   }
 
   fclose(fp);
+}
+
+double mtkProcessorInformationAggregatedUsage(MtkProcessorInformation *processorInformation) {
+  unsigned int idleDelta = processorInformation->aggregation.idle - processorInformation->oldAggregation.idle;
+  unsigned int totalDelta = mtkCpuInformationTotal(&processorInformation->aggregation) -
+      mtkCpuInformationTotal(&processorInformation->oldAggregation);
+  return (double) (totalDelta - idleDelta) / totalDelta;
 }

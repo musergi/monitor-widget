@@ -29,10 +29,7 @@ static gboolean onDraw(GtkWidget *widget, cairo_t *cairo, gpointer userData) {
                         MTK_SETTINGS(userData)->baseColor.b, MTK_SETTINGS(userData)->baseAlpha);
   cairo_set_line_width(cairo, MTK_SETTINGS(userData)->circleWidth);
   MtkProcessorInformation *processor = &MTK_USER_DATA(userData)->processorInformation;
-  unsigned int total = processor->aggregation.idle + processor->aggregation.user + processor->aggregation.iowait +
-                       processor->aggregation.irq + processor->aggregation.nice + processor->aggregation.softirq +
-                       processor->aggregation.system;
-  const double usage = (double) (total - processor->aggregation.idle) / total;
+  const double usage = mtkProcessorInformationAggregatedUsage(processor);
   const double end = MTK_SETTINGS(userData)->circleStart +
                      usage * (MTK_SETTINGS(userData)->circleEnd - MTK_SETTINGS(userData)->circleStart);
   cairo_arc(cairo, cx, cy, radius, MTK_SETTINGS(userData)->circleStart, end);
