@@ -19,6 +19,7 @@ typedef struct mtk_cpu_information_ {
 
 void mtkCpuInformationString(MtkCpuInformation *cpuInformation, char *string, size_t stringSize);
 unsigned int mtkCpuInformationTotal(MtkCpuInformation *cpuInformation);
+double mtkCpuInformationUsage(MtkCpuInformation *oldInformation, MtkCpuInformation *newInformation);
 
 typedef struct mtk_processor_information_ {
   unsigned int cpuCount;
@@ -30,5 +31,7 @@ typedef struct mtk_processor_information_ {
 
 void mtkProcessorInformationRead(MtkProcessorInformation *processorInformation);
 double mtkProcessorInformationAggregatedUsage(MtkProcessorInformation *processorInformation);
+unsigned int mtkProcessorInformationCpuCount(MtkProcessorInformation *processorInformation);
+double mtkProcessorInformationCpuUsage(MtkProcessorInformation *processorInformation, unsigned int index);
 
 #endif //MONITOR_WIDGET_CPUINFO_H

@@ -17,6 +17,12 @@ unsigned int mtkCpuInformationTotal(MtkCpuInformation *cpuInformation) {
       cpuInformation->iowait + cpuInformation->irq + cpuInformation->softirq;
 }
 
+double mtkCpuInformationUsage(MtkCpuInformation *oldInformation, MtkCpuInformation *newInformation) {
+  const unsigned int idleDelta = newInformation->idle - oldInformation->idle;
+  const unsigned int totalDelta = mtkCpuInformationTotal(newInformation) - mtkCpuInformationTotal(oldInformation);
+  return (double) (totalDelta - idleDelta) / totalDelta;
+}
+
 static int readLine(FILE *fp, char *buffer) {
   int i = 0;
   while (i < BUFFER_SIZE - 1) {
@@ -99,8 +105,13 @@ void mtkProcessorInformationRead(MtkProcessorInformation *processorInformation) 
 }
 
 double mtkProcessorInformationAggregatedUsage(MtkProcessorInformation *processorInformation) {
-  unsigned int idleDelta = processorInformation->aggregation.idle - processorInformation->oldAggregation.idle;
-  unsigned int totalDelta = mtkCpuInformationTotal(&processorInformation->aggregation) -
-      mtkCpuInformationTotal(&processorInformation->oldAggregation);
-  return (double) (totalDelta - idleDelta) / totalDelta;
+  return mtkCpuInformationUsage(&processorInformation->oldAggregation, &processorInformation->aggregation);
+}
+
+unsigned int mtkProcessorInformationCpuCount(MtkProcessorInformation *processorInformation) {
+  return processorInformation->cpuCount;
+}
+
+double mtkProcessorInformationCpuUsage(MtkProcessorInformation *processorInformation, unsigned int index) {
+  return mtkCpuInformationUsage(&processorInformation->oldCpus[index], &processorInformation->cpus[index]);
 }
